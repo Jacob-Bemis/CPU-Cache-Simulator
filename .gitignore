@@ -1,0 +1,13 @@
+
+# Compiled objects and binaries
+*.o
+*.a
+*.out
+cache-simulator      # your compiled binary name
+
+# Build directories
+build/
+
+# OS junk
+.DS_Store
+Thumbs.db
