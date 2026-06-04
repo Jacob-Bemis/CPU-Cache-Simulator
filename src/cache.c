@@ -100,7 +100,7 @@ uint8_t read(Cache* cache, uint32_t addr){
     Way* foundWay = cache_search(cache, addr);
     uint32_t index = get_offset(addr, cache->blockSize);
     if (foundWay == NULL){
-        /*TODO: in memory.c, write the function fetch_memory_block(memory, addr)*/
+        /*TODO: in memory.c, write the function fetch_memory_block(memory, cache, addr)*/
         uint8_t *block = NULL; // temp placeholder
         cache_insert(cache, addr, block);
         return block[index];
