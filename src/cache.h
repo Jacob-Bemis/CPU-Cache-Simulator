@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "memory.h"
 
 typedef struct Way{
     uint8_t validBit;
@@ -13,7 +14,7 @@ typedef struct Way{
 
 typedef struct Set{
     Way *wayArray;
-    int *lru_counters; // keeps track of the counter for the number of times a way is used. The way
+    int *lru_counters; // keeps track of the counter for the number of times a way is used.
                        // The way with the lowest counter is the least used
 }Set;
 
@@ -28,6 +29,8 @@ typedef struct Cache{
 Cache* cache_init(int numSets, int numWays, int BS);
 void cache_free(Cache* cache);
 Way* cache_search(Cache* cache, uint32_t addr);
-
+void cache_insert(Memory* mem, Cache* cache, uint32_t addr, uint8_t *data);
+uint8_t read(Memory* mem, Cache* cache, uint32_t addr);
+void write(Memory* mem, Cache* cache, uint32_t addr, uint8_t *data, uint32_t size);
 
 #endif // CACHE_H_
