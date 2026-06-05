@@ -1,5 +1,6 @@
 #include "cache.h"
 #include "tools.h"
+#include "memory.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -63,7 +64,7 @@ Way* cache_search(Cache* cache, uint32_t addr){
     return NULL;
 }
 
-void cache_insert(Cache* cache, uint32_t addr, uint8_t *data){
+void cache_insert(Memory* mem,Cache* cache, uint32_t addr, uint8_t *data){
     uint32_t set = get_index(addr,cache->numSets,cache->blockSize);
     uint32_t tag = get_tag(addr,cache->numSets,cache->blockSize);
     int *lru_counters = cache->setArray[set].lru_counters;
@@ -87,8 +88,8 @@ void cache_insert(Cache* cache, uint32_t addr, uint8_t *data){
         }
     }
     if (wayArray[lru_indx].dirtyBit == 1){
-        /* This is a function for writing back to memory
-         * write_back_mem(wayArray[lru_indx])*/
+        uint32_t memAddress = addr & ~(cache->blockSize -1); // finds the exact location in memory to write back
+        write_memory(mem, memAddress, cache->blockSize, wayArray[lru_indx].data); // writes the data back to memory
     }
     wayArray[lru_indx].validBit = 1;
     wayArray[lru_indx].dirtyBit = 0;
@@ -96,15 +97,28 @@ void cache_insert(Cache* cache, uint32_t addr, uint8_t *data){
     memcpy(wayArray[lru_indx].data, data, cache->blockSize);
 }
 
-uint8_t read(Cache* cache, uint32_t addr){
+uint8_t read(Memory* mem, Cache* cache, uint32_t addr){
     Way* foundWay = cache_search(cache, addr);
     uint32_t index = get_offset(addr, cache->blockSize);
     if (foundWay == NULL){
-        /*TODO: in memory.c, write the function fetch_memory_block(memory, cache, addr)*/
-        uint8_t *block = NULL; // temp placeholder
-        cache_insert(cache, addr, block);
+        uint32_t memAddress = addr & ~(cache->blockSize -1);
+        uint8_t *block = fetch_memory(mem, memAddress, cache->blockSize);
+        cache_insert(mem, cache, addr, block);
         return block[index];
     }
     uint8_t *block = foundWay->data;
     return block[index];
+}
+
+void write(Memory* mem, Cache* cache, uint32_t addr, uint8_t *data, uint32_t size){
+    Way* foundWay = cache_search(cache, addr);
+    uint32_t index = get_offset(addr, cache->blockSize);
+    if (foundWay == NULL){
+        uint32_t memAddress = addr & ~(cache->blockSize -1);
+        uint8_t *block = fetch_memory(mem, memAddress, cache->blockSize);
+        cache_insert(mem, cache, addr, block);
+        foundWay = cache_search(cache, addr);
+    }
+    memcpy(foundWay.data[index], data, size);
+    foundWay.dirtyBit = 1;
 }
