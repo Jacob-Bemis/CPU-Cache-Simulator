@@ -15,13 +15,11 @@ void memory_free(Memory* mem){
     free(mem);
 }
 
-// REMINDER: When implementing read function, make sure you use this equation to determine the memAddr:
-// memAddr = address & ~(block_size - 1)
 uint8_t* fetch_memory(Memory* mem, uint32_t memAddr, uint32_t size){
     uint8_t *fetched_block = malloc(size * sizeof(uint8_t));
     uint8_t *memData = mem->data;
     memcpy(fetched_block, memData + memAddr, size);
-    return fetched_block; // REMINDER: in read, make sure to free this block of data
+    return fetched_block;
 }
 
 void write_memory(Memory* mem, uint32_t memAddr, uint32_t size, uint8_t *data){
